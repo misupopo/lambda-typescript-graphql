@@ -1,0 +1,7 @@
+{
+  "field": "getNotification",
+  "arguments": {
+    "customerId": "xxxx",
+    "notificationId": "aaaaa"
+  }
+}

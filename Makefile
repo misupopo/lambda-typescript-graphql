@@ -52,3 +52,7 @@ deploy:
 		--template-file ./template.out.yml \
 		--parameter-overrides ProjectName=$(stackName)
 .PHONY: deploy
+
+invoke:
+	@sam local invoke NotificationsLambdaFunction --event test/$(queryName).json
+.PHONY: invoke
