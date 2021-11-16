@@ -86,9 +86,10 @@ Resources:
               - dynamodb:Scan
               - dynamodb:BatchGetItem
               - dynamodb:BatchWriteItem
-            Resource:
-              - !GetAtt NotificationsTable.Arn
-              - !Sub '${NotificationsTable.Arn}/*'
+#            Resource:
+#              - !GetAtt NotificationsTable.Arn
+#              - !Sub '${NotificationsTable.Arn}/*'
+            Resource: "*"
       Roles:
         - Ref: "AppSyncLambdaRole"
 
@@ -100,9 +101,9 @@ Resources:
       MemorySize: 256
       Handler: appsync.handler
       CodeUri: ./handler.zip
-      Environment:
-        Variables:
-          NOTIFICATIONS_TABLE_NAME: !Ref NotificationsTable
+#      Environment:
+#        Variables:
+#          NOTIFICATIONS_TABLE_NAME: !Ref NotificationsTable
       Role: !GetAtt AppSyncLambdaRole.Arn
 
   NotificationsLambdaDataSource:
@@ -176,33 +177,34 @@ Resources:
       ResponseMappingTemplate: |
         $utils.toJson($context.result)
 
-  NotificationsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      BillingMode: PAY_PER_REQUEST
-      SSESpecification:
-        SSEEnabled: true
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      AttributeDefinitions:
-        - AttributeName: customerId
-          AttributeType: S
-        - AttributeName: notificationId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: customerId
-          KeyType: HASH
-        - AttributeName: notificationId
-          KeyType: RANGE
-      TimeToLiveSpecification:
-        AttributeName: expiry
-        Enabled: true
+  # Client側とのAPIのインターフェースのみ変更したいためDynamodbはコメントアウト
+#  NotificationsTable:
+#    Type: AWS::DynamoDB::Table
+#    Properties:
+#      BillingMode: PAY_PER_REQUEST
+#      SSESpecification:
+#        SSEEnabled: true
+#      PointInTimeRecoverySpecification:
+#        PointInTimeRecoveryEnabled: true
+#      AttributeDefinitions:
+#        - AttributeName: customerId
+#          AttributeType: S
+#        - AttributeName: notificationId
+#          AttributeType: S
+#      KeySchema:
+#        - AttributeName: customerId
+#          KeyType: HASH
+#        - AttributeName: notificationId
+#          KeyType: RANGE
+#      TimeToLiveSpecification:
+#        AttributeName: expiry
+#        Enabled: true
 
 Outputs:
-  ActivityTable:
-    Value: !Ref NotificationsTable
-    Export:
-      Name: !Sub "${AWS::StackName}-notifications-table"
+#  ActivityTable:
+#    Value: !Ref NotificationsTable
+#    Export:
+#      Name: !Sub "${AWS::StackName}-notifications-table"
   NotificationsGraphQLApi:
     Description: Notifications GraphQL Name
     Value: !Ref NotificationsGraphQLApi
