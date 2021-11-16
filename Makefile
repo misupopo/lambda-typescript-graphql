@@ -38,8 +38,8 @@ package:
 	@(cp -R node_modules dist && cd dist && zip -q -9 -r ../handler.zip .)
 	echo "Running as: $(shell aws sts get-caller-identity --query Arn --output text)"
 	@aws cloudformation package \
-		--template-file deploy.sam.yml \
-		--output-template-file deploy.out.yml \
+		--template-file template.yml \
+		--output-template-file template.out.yml \
 		--s3-bucket $(S3_BUCKET) \
 		--s3-prefix sam
 .PHONY: package
@@ -49,6 +49,6 @@ deploy:
 	@aws cloudformation deploy --no-fail-on-empty-changeset \
 		--stack-name "$(stackName)-appsync" \
 		--capabilities CAPABILITY_NAMED_IAM \
-		--template-file ./deploy.out.yml \
+		--template-file ./template.out.yml \
 		--parameter-overrides ProjectName=$(stackName)
 .PHONY: deploy
