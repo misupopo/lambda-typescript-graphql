@@ -29,7 +29,7 @@ build:
 clean:
 	@rm -rf ./dist
 	@rm -f ./handler.zip
-	@rm -f ./deploy.out.yml
+	@rm -f ./template.out.yml
 .PHONY: clean
 
 # package up the lambda and upload it to S3
