@@ -1,0 +1,220 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'create appsync and graphql lambda'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  ProjectName:
+    Type: String
+
+Resources:
+
+  NotificationsGraphQLApi:
+    Type: AWS::AppSync::GraphQLApi
+    Properties:
+      Name: !Sub "${ProjectName}-notifications-graphql-api"
+      AuthenticationType: AWS_IAM
+      LogConfig:
+        CloudWatchLogsRoleArn: !GetAtt AppSyncServiceRole.Arn
+        FieldLogLevel: "ERROR"
+
+  NotificationsAppSyncSchema:
+    Type: "AWS::AppSync::GraphQLSchema"
+    Properties:
+      ApiId: !GetAtt NotificationsGraphQLApi.ApiId
+      DefinitionS3Location: ./schema.graphql
+
+  AppSyncServiceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "appsync.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs
+
+  AppSyncLambdaInvokePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: AppSyncLambdaInvokePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - lambda:*
+          Resource: !GetAtt NotificationsLambdaFunction.Arn
+      Roles:
+      - !Ref AppSyncServiceRole
+
+  AppSyncLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+
+  DynamodbAccessPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: "dynamodb-access"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+            Resource:
+              - !GetAtt NotificationsTable.Arn
+              - !Sub '${NotificationsTable.Arn}/*'
+      Roles:
+        - Ref: "AppSyncLambdaRole"
+
+  NotificationsLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs12.x
+      Timeout: 10
+      MemorySize: 256
+      Handler: appsync.handler
+      CodeUri: ./handler.zip
+      Environment:
+        Variables:
+          NOTIFICATIONS_TABLE_NAME: !Ref NotificationsTable
+      Role: !GetAtt AppSyncLambdaRole.Arn
+
+  NotificationsLambdaDataSource:
+    Type: "AWS::AppSync::DataSource"
+    Properties:
+      ApiId: !GetAtt NotificationsGraphQLApi.ApiId
+      Name: "NotificationsLambdaDataSource"
+      Description: "Notifications Lambda data source"
+      Type: "AWS_LAMBDA"
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt NotificationsLambdaFunction.Arn
+
+  GetNotificationsQueryResolver:
+    Type: "AWS::AppSync::Resolver"
+    Properties:
+      ApiId: !GetAtt NotificationsGraphQLApi.ApiId
+      TypeName: "Query"
+      FieldName: "getNotification"
+      DataSourceName: !GetAtt NotificationsLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Invoke",
+          "payload": {
+            "field": "getNotification",
+            "arguments": $utils.toJson($context.arguments),
+            "identity": $utils.toJson($context.identity),
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($context.result)
+
+  ListNotificationsQueryResolver:
+    Type: "AWS::AppSync::Resolver"
+    Properties:
+      ApiId: !GetAtt NotificationsGraphQLApi.ApiId
+      TypeName: "Query"
+      FieldName: "listNotificationByCustomer"
+      DataSourceName: !GetAtt NotificationsLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Invoke",
+          "payload": {
+            "field": "listNotificationByCustomer",
+            "arguments": $utils.toJson($context.arguments),
+            "identity": $utils.toJson($context.identity),
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($context.result)
+
+  SaveNotificationQueryResolver:
+    Type: "AWS::AppSync::Resolver"
+    Properties:
+      ApiId: !GetAtt NotificationsGraphQLApi.ApiId
+      TypeName: "Mutation"
+      FieldName: "saveNotification"
+      DataSourceName: !GetAtt NotificationsLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Invoke",
+          "payload": {
+            "field": "saveNotification",
+            "arguments": $utils.toJson($context.arguments),
+            "identity": $utils.toJson($context.identity),
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($context.result)
+
+  NotificationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: customerId
+          AttributeType: S
+        - AttributeName: notificationId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: customerId
+          KeyType: HASH
+        - AttributeName: notificationId
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: expiry
+        Enabled: true
+
+Outputs:
+  ActivityTable:
+    Value: !Ref NotificationsTable
+    Export:
+      Name: !Sub "${AWS::StackName}-notifications-table"
+  NotificationsGraphQLApi:
+    Description: Notifications GraphQL Name
+    Value: !Ref NotificationsGraphQLApi
+    Export:
+      Name: !Sub "${AWS::StackName}-notifications-graphql-api"
+  NotificationsGraphQLApiId:
+    Description: Unique AWS AppSync GraphQL API Identifier
+    Value: !GetAtt NotificationsGraphQLApi.ApiId
+    Export:
+      Name: !Sub "${AWS::StackName}-notifications-graphql-api-id"
+  GraphQLApiUrl:
+    Description: The Endpoint URL of your GraphQL API.
+    Value: !GetAtt NotificationsGraphQLApi.GraphQLUrl
+    Export:
+      Name: !Sub "${AWS::StackName}-notifications-graphql-api-url"

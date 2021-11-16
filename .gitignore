@@ -1,0 +1,6 @@
+node_modules
+dist
+.envrc
+handler.zip
+/deploy.out.yml
+.aws-sam
