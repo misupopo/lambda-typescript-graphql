@@ -12,10 +12,18 @@ Resources:
     Type: AWS::AppSync::GraphQLApi
     Properties:
       Name: !Sub "${ProjectName}-notifications-graphql-api"
-      AuthenticationType: AWS_IAM
+#      AuthenticationType: AWS_IAM
+      AuthenticationType: API_KEY
       LogConfig:
         CloudWatchLogsRoleArn: !GetAtt AppSyncServiceRole.Arn
         FieldLogLevel: "ERROR"
+
+  # Expiresはハードコーディングでしか設定できなさそうなのでAppSyncApiKeyはGUIで発行する
+#  AppSyncApiKey:
+#    Type: "AWS::AppSync::ApiKey"
+#    Properties:
+#      Expires: 1564608763
+#      ApiId: !GetAtt NotificationsGraphQLApi.ApiId
 
   NotificationsAppSyncSchema:
     Type: "AWS::AppSync::GraphQLSchema"
