@@ -5,6 +5,8 @@ Transform: AWS::Serverless-2016-10-31
 Parameters:
   ProjectName:
     Type: String
+    # todo projectNameの二重管理はやめたい
+    Default: example
 
 Resources:
 
@@ -12,8 +14,13 @@ Resources:
     Type: AWS::AppSync::GraphQLApi
     Properties:
       Name: !Sub "${ProjectName}-notifications-graphql-api"
-#      AuthenticationType: AWS_IAM
-      AuthenticationType: API_KEY
+      # API_KEYであればGUIからキーを手動で発行する
+      #      AuthenticationType: API_KEY
+      AuthenticationType: "AMAZON_COGNITO_USER_POOLS"
+      UserPoolConfig:
+        UserPoolId: { "Fn::ImportValue": { "Fn::Sub": "${ProjectName}-user-pool-id" } }
+        AwsRegion: !Sub ${AWS::Region}
+        DefaultAction: "ALLOW"
       LogConfig:
         CloudWatchLogsRoleArn: !GetAtt AppSyncServiceRole.Arn
         FieldLogLevel: "ERROR"
