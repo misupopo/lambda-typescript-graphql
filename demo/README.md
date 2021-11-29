@@ -17,3 +17,10 @@ const config = {
 };
 ```
 
+## webアプリの立ち上げ
+```
+npm run start
+```
+npm run startで立ち上げたら、「http://127.0.0.1:8080/jwtTokenAuth/」がjwtTokenの発行画面、「http://127.0.0.1:8080/appsyncCoginito/」が
+graphqlのレスポンス確認の画面です。
+
