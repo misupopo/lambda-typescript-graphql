@@ -6,6 +6,21 @@ type Notification {
   company: String
 }
 
+type Todo {
+  id: String
+  content: String
+}
+
+type User {
+  id: String
+  name: String
+  todos: [Todo]
+}
+
+type Users {
+  items: [User]
+}
+
 type NotificationsPage {
   items: [Notification]
   nextToken: String
@@ -26,6 +41,7 @@ type Mutation {
 type Query {
   getNotification(customerId: String!, notificationId: String!): Notification
   listNotificationByCustomer(customerId: String!, nextToken: String, limit: Int = 20): NotificationsPage
+  listUsers: Users
 }
 
 type Subscription {

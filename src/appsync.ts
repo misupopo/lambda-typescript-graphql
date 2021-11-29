@@ -1,5 +1,6 @@
 import bunyan from "bunyan"
 import { GetNotifications, ListNotificationsByCustomer } from "./services/notifications";
+import { ListUsers } from "./services/users";
 
 const logger = bunyan.createLogger({
   name: "appsync",
@@ -22,9 +23,12 @@ export const handler = (event: HandlerEvent) => {
       return GetNotifications(event.arguments)
     case "listNotificationByCustomer":
       return ListNotificationsByCustomer(event.arguments)
+    case "listUsers":
+      return ListUsers()
     case "saveNotification":
       return event
     default:
+      console.log(`no filed name case`);
       return Promise.reject(`unknown operation: ${event.field}`)
   }
 }
