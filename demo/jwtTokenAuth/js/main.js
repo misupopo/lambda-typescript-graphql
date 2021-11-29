@@ -1,7 +1,7 @@
 // jwt tokenを発行する
-const AWS_REGION = "ap-northeast-1"
-const COGNITO_USER_POOL_ID = "ap-northeast-1_xxxx"
-const CLIENT_ID = "xxxxx"
+const AWS_REGION = config.region;
+const COGNITO_USER_POOL_ID = config.userPoolClientId;
+const CLIENT_ID = config.clientId;
 
 var regDialog, regForm;
 var verifyDialog;
@@ -9,6 +9,7 @@ var regCompleteDialog;
 var signInDialog;
 var userPool, cognitoUser;
 var idToken;
+
 function toggleSignOut ( enable ) {
     enable === true ? $( '#sign-out' ).show() : $( '#sign-out' ).hide();
 }
@@ -56,8 +57,9 @@ function addUser() {
         new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute( {
             Name : 'email', Value : email
         } ),
+        // given_nameという属性はおそらく今はnameという属性に変わっている
         new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute( {
-            Name : 'given_name', Value : firstName
+            Name : 'name', Value : firstName
         } ),
         new AWSCognito.CognitoIdentityServiceProvider.CognitoUserAttribute( {
             Name : 'family_name', Value : lastName
@@ -112,6 +114,9 @@ function authenticateUser() {
         },
         onFailure: function (err) {
             alert(err);
+        },
+        newPasswordRequired: function(userAttributes, requiredAttributes) {
+            console.log(userAttributes, requiredAttributes);
         }
     });
 }

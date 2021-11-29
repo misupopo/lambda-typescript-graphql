@@ -1,8 +1,7 @@
-
 const AppSync = {
-  "graphqlEndpoint": "https://xxxxx.appsync-api.ap-northeast-1.amazonaws.com/graphql",
-  "apiKey": "xxxxxx",
-  "jwtToken": "xxxxx"
+  "graphqlEndpoint": config.graphqlEndpoint,
+  "apiKey": config.apiKey,
+  "jwtToken": config.jwtToken
 };
 
 // 認証のタイプはx-api-keyやcognitoなどがある
