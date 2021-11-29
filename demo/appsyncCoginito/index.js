@@ -20,6 +20,8 @@ const authType = cognito;
     headers: {}
   };
 
+  // 認証のタイプがxApiKeyであればrequest headersにX-Api-Keyを付与
+  // 認証のタイプがxApiKeyであればrequest headersにAuthorizationを付与
   if (authType === xApiKey) {
     ajaxSetupData.headers['X-Api-Key'] = AppSync.apiKey;
   } else if (authType === cognito) {
