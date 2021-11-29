@@ -1,0 +1,8 @@
+const config = {
+  awsRegion: 'ap-northeast-1',
+  apiKey: 'xxxxxxxxx',
+  userPoolClientId: 'ap-northeast-1_xxxxxxxx',
+  clientId: 'xxxxxxxxxxxx',
+  graphqlEndpoint: 'https://xxxxxxxxx.appsync-api.ap-northeast-1.amazonaws.com/graphql',
+  jwtToken: 'abcdefghijklmnopqrstvwyz',
+};

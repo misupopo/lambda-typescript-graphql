@@ -4,3 +4,4 @@ dist
 handler.zip
 .aws-sam
 /template.out.yml
+config.js
