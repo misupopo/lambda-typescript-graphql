@@ -37,3 +37,13 @@ li > button {
 .subscription {
   padding: 5px;
 }
+
+.errorMessage {
+  color: #C21F39;
+  font-weight: bold;
+  padding: 5px;
+}
+
+.dis-n {
+  display: none !important;
+}
