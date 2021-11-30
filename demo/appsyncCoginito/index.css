@@ -25,3 +25,25 @@ li > input[type="text"] {
 li > button {
     margin-top: 2px;
 }
+
+.bg-cobalt {
+  background-color: #ff9447 !important;
+}
+
+.hamburger.dark .line, .nav-button.dark .line {
+  background-color: #ffffff !important;
+}
+
+.subscription {
+  padding: 5px;
+}
+
+.errorMessage {
+  color: #C21F39;
+  font-weight: bold;
+  padding: 5px;
+}
+
+.dis-n {
+  display: none !important;
+}

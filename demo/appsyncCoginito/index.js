@@ -12,6 +12,10 @@ const cognito = 'cognito';
 // const authType = 'xApiKey';
 const authType = cognito;
 
+const exportErrorMessage = {
+  tokenExpired: 'Tokenの有効期限が切れています'
+};
+
 (function ($) {
   const ajaxSetupData = {
     url: AppSync.graphqlEndpoint,
@@ -101,6 +105,15 @@ const authType = cognito;
       }
 
     }).fail(function (jqXHR, textStatus, errorThrown) {
+      // errorMessageがToken has expiredは有効期限切れ
+      const errorType = jqXHR.responseJSON.errors[0].errorType;
+      const errorMessage = jqXHR.responseJSON.errors[0].message;
+
+      if (errorMessage === 'Token has expired.') {
+        $('#errorMessage').removeClass('dis-n').text(exportErrorMessage.tokenExpired);
+      }
+
+      console.log('request error: ', errorType, errorMessage);
       console.log(jqXHR, textStatus, errorThrown);
     });
   };
